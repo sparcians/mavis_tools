@@ -1,0 +1,3 @@
+[submodule "mavis"]
+	path = mavis
+	url = git@github.com:sparcians/mavis.git
