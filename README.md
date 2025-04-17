@@ -1,4 +1,4 @@
-# ISA Dump Utility
+# Mavis Tools
 
 A collection of tools built around the [mavis](https://github.com/sparcians/mavis) decoder library
 
