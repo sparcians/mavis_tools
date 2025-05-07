@@ -40,3 +40,19 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/mavis)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/mavis/elfio)
 
 add_subdirectory(tools)
+
+if(NOT CLANGFORMAT_EXECUTABLE)
+  set(CLANGFORMAT_EXECUTABLE clang-format)
+endif()
+
+add_custom_target(clangformat
+  git ls-files "*.hpp" "*.cpp" > clang-format-files.out
+  COMMAND
+     ${CLANGFORMAT_EXECUTABLE} -i --files=clang-format-files.out
+  COMMAND
+     rm -f clang-format-files.out
+  WORKING_DIRECTORY
+     ${CMAKE_SOURCE_DIR}
+  COMMENT
+     "Formatting with ${CLANGFORMAT_EXECUTABLE} ..."
+  )
