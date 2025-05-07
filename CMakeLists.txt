@@ -9,6 +9,9 @@ find_package (Boost 1.74.0 REQUIRED COMPONENTS program_options)
 include_directories (SYSTEM ${Boost_INCLUDE_DIRS})
 message (STATUS "Using BOOST ${Boost_VERSION_STRING}")
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 add_compile_options (-g -Werror -fPIC
   -Wall -Wextra -Winline -Winit-self -Wno-unused-function
   -Wuninitialized -Wno-sequence-point -Wno-inline -Wno-unknown-pragmas
@@ -28,6 +31,8 @@ endif ()
 if (CMAKE_BUILD_TYPE MATCHES "^[Dd]ebug")
   add_compile_options (-O0)
 endif()
+
+include(std_filesystem)
 
 add_subdirectory(mavis)
 
