@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 3.15)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package (Boost 1.74.0 REQUIRED COMPONENTS program_options)
+find_package (Boost 1.74.0 REQUIRED COMPONENTS program_options json)
 include_directories (SYSTEM ${Boost_INCLUDE_DIRS})
 message (STATUS "Using BOOST ${Boost_VERSION_STRING}")
 
