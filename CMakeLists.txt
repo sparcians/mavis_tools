@@ -2,7 +2,7 @@ PROJECT(mavis_tools CXX)
 
 cmake_minimum_required (VERSION 3.15)
 
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package (Boost 1.74.0 REQUIRED COMPONENTS program_options json)
@@ -34,6 +34,7 @@ endif()
 
 include(std_filesystem)
 
+set(MAVIS_CXX_STANDARD 23)
 add_subdirectory(mavis)
 
 add_subdirectory(tools)
