@@ -1,13 +1,11 @@
-#include <algorithm>
-#include <boost/program_options/options_description.hpp>
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <vector>
 #include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
 #include "mavis/extension_managers/RISCVExtensionManager.hpp"
-#include "mavis/JSONUtils.hpp"
 #include "mavis_path.hpp"
+#include "mnemonic_extension_map.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -71,29 +69,15 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    const std::string json_path = mavis_path + "/json";
+    const auto [json_path, isa_spec_json] = getRISCVJSONInfo(mavis_path);
 
-    const auto ext_man = mavis::extension_manager::riscv::RISCVExtensionManager::fromISA(
-        isa_string, json_path + "/riscv_isa_spec.json", json_path);
-    const auto & jsons = ext_man.getJSONs();
+    mavis_tools::MnemonicExtensionMap mnemonic_map(
+        mavis::extension_manager::riscv::RISCVExtensionManager::fromISA(isa_string, isa_spec_json,
+                                                                        json_path));
 
-    std::vector<boost::json::string> mnemonics;
-
-    for (const auto & json : jsons)
+    for (const auto & mnemonic : mnemonic_map.getMnemonics())
     {
-        const auto json_value = mavis::parseJSON(json);
-        const auto & jobj = json_value.as_array();
-        mnemonics.reserve(mnemonics.size() + jobj.size());
-        std::transform(jobj.begin(), jobj.end(), std::back_inserter(mnemonics),
-                       [](const boost::json::value & inst_info)
-                       { return inst_info.as_object().at("mnemonic").as_string(); });
-    }
-
-    std::sort(mnemonics.begin(), mnemonics.end());
-
-    for (const auto & mnemonic : mnemonics)
-    {
-        std::cout << mnemonic.c_str() << std::endl;
+        std::cout << mnemonic << std::endl;
     }
 
     return 0;

@@ -1,7 +1,9 @@
 add_subdirectory(isa_dump)
+add_subdirectory(identify_opcode)
 
 set(MAVIS_TOOLS_INSTALL_TARGETS
     isa_dump
+    identify_opcode
 )
 
 include(mavis_extra_tools.cmake OPTIONAL)
