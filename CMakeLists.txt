@@ -38,6 +38,10 @@ add_subdirectory(mavis)
 
 add_subdirectory(tools)
 
+if(MAVIS_TOOLS_INSTALL_DIR)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mavis/json DESTINATION ${MAVIS_TOOLS_INSTALL_DIR}/../share/mavis_tools/mavis)
+endif()
+
 if(NOT CLANGFORMAT_EXECUTABLE)
   set(CLANGFORMAT_EXECUTABLE clang-format)
 endif()

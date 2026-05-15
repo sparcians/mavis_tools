@@ -128,3 +128,11 @@ inline std::string getMavisPath()
 
     throw CouldNotFindMavisException();
 }
+
+inline std::pair<std::string, std::string>
+getRISCVJSONInfo(const std::string & mavis_path = getMavisPath())
+{
+    static const std::string isa_json = "/riscv_isa_spec.json";
+    const std::string json_path = mavis_path + "/json";
+    return std::make_pair(json_path, json_path + isa_json);
+}
