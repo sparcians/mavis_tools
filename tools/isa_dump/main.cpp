@@ -4,23 +4,20 @@
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include "mavis/extension_managers/RISCVExtensionManager.hpp"
+#include "filesystem.hpp"
 #include "mavis_path.hpp"
 #include "mnemonic_extension_map.hpp"
+#include "uarch_json.hpp"
 
 int main(int argc, char* argv[])
 {
-    std::string mavis_path;
+    fs::path mavis_path;
     std::string isa_string;
 
-    boost::program_options::options_description optional_args("Optional arguments");
+    auto optional_args = mavis_tools::getDefaultOptionalArgs(mavis_path);
     boost::program_options::options_description required_args("Required arguments");
 
-    optional_args.add_options()("help,h", "print this help message")(
-        "mavis,m",
-        boost::program_options::value<std::string>(&mavis_path)
-            ->default_value(getMavisPath())
-            ->value_name("path"),
-        "path to mavis");
+    mavis_tools::UArchJSONInfo::addOptions(optional_args);
 
     required_args.add_options()("isa-string",
                                 boost::program_options::value<std::string>(&isa_string),
@@ -41,11 +38,63 @@ int main(int argc, char* argv[])
                                   vm);
     boost::program_options::notify(vm);
 
-    const auto print_help = [&optional_args]()
+    try
     {
+        if (vm.count("help") != 0)
+        {
+            throw mavis_tools::CommandLineException();
+        }
+
+        if (vm.count("isa-string") == 0)
+        {
+            throw mavis_tools::CommandLineException("ISA string must be specified");
+        }
+
+        const auto [json_path, isa_spec_json] = mavis_tools::getRISCVJSONInfo(mavis_path);
+
+        mavis_tools::MnemonicExtensionMap mnemonic_info(
+            mavis::extension_manager::riscv::RISCVExtensionManager::fromISA(
+                isa_string, isa_spec_json, json_path));
+
+        const mavis_tools::UArchJSONInfo uarch_info(vm);
+
+        if (uarch_info.empty())
+        {
+            std::cout << mnemonic_info;
+        }
+        else
+        {
+            const auto & mnemonic_key = mnemonic_info.getKey();
+
+            std::cout << mnemonic_key;
+
+            uarch_info.formatKeys(std::cout);
+
+            std::cout << std::endl;
+
+            for (const auto & [mnemonic, mnemonic_info] : mnemonic_info.getMnemonics())
+            {
+                mnemonic_key.formatColumn(std::cout, mnemonic);
+
+                for (const auto & info : uarch_info)
+                {
+                    std::cout << info.get(mnemonic_info.dealias());
+                }
+
+                std::cout << std::endl;
+            }
+        }
+    }
+    catch (const mavis_tools::CommandLineException & ex)
+    {
+        if (ex.hasMessage())
+        {
+            std::cerr << ex.what() << std::endl;
+        }
+
         std::ios init(NULL);
         init.copyfmt(std::cerr);
-        std::cerr << "Usage: isa_dump [OPTION] <isa string>" << std::endl
+        std::cerr << "Usage: isa_dump [OPTION] [--] <isa string>" << std::endl
                   << "Dumps all instruction mnemonics enabled by the given ISA string" << std::endl
                   << std::endl
                   << optional_args << std::endl
@@ -54,30 +103,13 @@ int main(int argc, char* argv[])
                   << "  <isa string>";
         std::cerr.copyfmt(init);
         std::cerr << "RISC-V ISA string to dump" << std::endl;
-    };
 
-    if (vm.count("help") != 0)
-    {
-        print_help();
-        return 0;
+        return ex.getReturnCode();
     }
-
-    if (vm.count("isa-string") == 0)
+    catch (const mavis_tools::MavisToolException & ex)
     {
-        std::cerr << "ISA string must be specified" << std::endl;
-        print_help();
+        std::cerr << ex.what() << std::endl;
         return 1;
-    }
-
-    const auto [json_path, isa_spec_json] = getRISCVJSONInfo(mavis_path);
-
-    mavis_tools::MnemonicExtensionMap mnemonic_map(
-        mavis::extension_manager::riscv::RISCVExtensionManager::fromISA(isa_string, isa_spec_json,
-                                                                        json_path));
-
-    for (const auto & mnemonic : mnemonic_map.getMnemonics())
-    {
-        std::cout << mnemonic << std::endl;
     }
 
     return 0;
