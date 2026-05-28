@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <string>
+#include <sstream>
 
 namespace mavis_tools
 {
@@ -40,4 +41,27 @@ namespace mavis_tools
 
         int getReturnCode() const { return return_code_; }
     };
+
+    class OpcodeException : public MavisToolException
+    {
+        protected:
+            static inline std::string toHex_(const uint32_t val)
+            {
+                std::ostringstream os;
+                os << std::hex << val;
+                return os.str();
+            }
+
+            const uint32_t opcode_;
+
+        public:
+            OpcodeException(std::string&& msg, const uint32_t opcode) :
+                MavisToolException(std::forward<std::string>(msg)),
+                opcode_(opcode)
+            {
+            }
+
+            uint32_t getOpcode() const { return opcode_; }
+    };
+
 } // namespace mavis_tools

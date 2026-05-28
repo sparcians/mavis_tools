@@ -5,6 +5,7 @@
 #include <istream>
 #include <ostream>
 #include <string>
+#include <string_view>
 
 namespace mavis_tools
 {
@@ -28,6 +29,7 @@ namespace mavis_tools
         JSONKey() = default;
 
         explicit JSONKey(const std::string_view key) : key_(key) {}
+        explicit JSONKey(const boost::json::string_view key) : key_(key) {}
 
         const std::string & getKey() const { return key_; }
 

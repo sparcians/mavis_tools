@@ -1,4 +1,3 @@
-#include <format>
 #include <iostream>
 #include <iomanip>
 #include <set>
@@ -15,20 +14,20 @@
 #include "mavis_types.hpp"
 #include "mavis_tool_exceptions.hpp"
 
-class UnknownOpcodeException : public mavis_tools::MavisToolException
+class UnknownOpcodeException : public mavis_tools::OpcodeException
 {
   public:
     explicit UnknownOpcodeException(const uint32_t opcode) :
-        MavisToolException(std::format("{:x} is an unknown opcode", opcode))
+        mavis_tools::OpcodeException(toHex_(opcode) + " is an unknown opcode", opcode)
     {
     }
 };
 
-class IllegalOpcodeException : public mavis_tools::MavisToolException
+class IllegalOpcodeException : public mavis_tools::OpcodeException
 {
   public:
     explicit IllegalOpcodeException(const uint32_t opcode) :
-        MavisToolException(std::format("{:x} is an illegal opcode", opcode))
+        mavis_tools::OpcodeException(toHex_(opcode) + " is an illegal opcode", opcode)
     {
     }
 };
