@@ -46,7 +46,9 @@ int main(int argc, char* argv[])
     optional_args.add_options()(
         "xlen,x",
         boost::program_options::value<std::vector<uint32_t>>(&xlens)->composing()->value_name("xn"),
-        "restrict search to given XLEN(s)");
+        "restrict search to given XLEN(s)")(
+        "disassembly,d",
+        "Print full dissassembly instead of mnemonic");
 
     required_args.add_options()("opcode", boost::program_options::value<std::string>(&opcode_str),
                                 "Opcode to find");
@@ -103,6 +105,8 @@ int main(int argc, char* argv[])
             }
         }
 
+        const bool print_disasm = vm.count("disassembly") != 0;
+
         const auto [json_path, isa_spec_json] = mavis_tools::getRISCVJSONInfo(mavis_path);
 
         const uint32_t opcode = std::stoul(opcode_str, nullptr, 16);
@@ -130,7 +134,21 @@ int main(int argc, char* argv[])
                 try
                 {
                     const auto decode_info = mavis.getInfo(opcode);
+
+                    // The mnemonic variable is the mnemonic as it exists in the Mavis JSON.
+                    // However, some instructions produce different mnemonics at disassembly
+                    // time depending on the opcode bits. So, we use the disassembly string
+                    // as the final mnemonic for output, but the JSON mnemonic to determine
+                    // which extension owns the instruction.
                     const auto & mnemonic = decode_info->opinfo->getMnemonic();
+                    auto dasm = decode_info->opinfo->dasmString();
+
+                    // Strip everything after the mnemonic (assumed to be everything before the
+                    // first whitespace character) unless full disassembly mode is enabled
+                    if(!print_disasm)
+                    {
+                        dasm = dasm.substr(0, dasm.find_first_of(" \t"));
+                    }
 
                     const mavis_tools::MnemonicExtensionMap ext_map(ext_manager);
                     const auto & extensions = ext_map.getExtensions(mnemonic);
@@ -140,7 +158,7 @@ int main(int argc, char* argv[])
                         throw std::runtime_error("Could not find extension for " + mnemonic);
                     }
 
-                    xlen_found_mnemonics[mnemonic].emplace(
+                    xlen_found_mnemonics[dasm].emplace(
                         [&extensions]
                         {
                             const bool multiple_terms = extensions.size() > 1;
